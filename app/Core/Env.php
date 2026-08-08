@@ -2,6 +2,8 @@
 
 namespace App\Core;
 
+use Dotenv\Exception\InvalidFileException;
+
 /**
  * Loads .env (via vlucas/phpdotenv) once per request from the project root
  * (one level above public/), and exposes a global env() helper.
@@ -17,8 +19,19 @@ class Env
         }
         $root = dirname(__DIR__, 2);
         if (file_exists($root . '/.env')) {
-            $dotenv = \Dotenv\Dotenv::createImmutable($root);
-            $dotenv->safeLoad();
+            try {
+                $dotenv = \Dotenv\Dotenv::createImmutable($root);
+                $dotenv->safeLoad();
+            } catch (InvalidFileException $e) {
+                throw new InvalidFileException(
+                    $e->getMessage()
+                    . ' Tip: quote any .env value that contains spaces'
+                    . ' (e.g. MAIL_PASSWORD="xxxx xxxx xxxx xxxx" for a Gmail App Password).'
+                    . ' See .env.example.',
+                    (int) $e->getCode(),
+                    $e
+                );
+            }
         }
         self::$loaded = true;
     }

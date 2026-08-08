@@ -1,0 +1,13 @@
+<?php
+return [
+    'up' => "CREATE TABLE IF NOT EXISTS applicants (
+        id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        full_name VARCHAR(255) DEFAULT NULL,
+        email VARCHAR(255) DEFAULT NULL UNIQUE,
+        phone VARCHAR(50) DEFAULT NULL UNIQUE,
+        email_verified_at TIMESTAMP NULL DEFAULT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+    'down' => 'DROP TABLE IF EXISTS applicants',
+];

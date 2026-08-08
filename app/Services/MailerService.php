@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Core\Env;
+use App\Core\Url;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception as PHPMailerException;
 
@@ -11,78 +12,172 @@ class MailerException extends \Exception {}
 /**
  * SMTP mailer (PHPMailer) for portal login codes, application-received
  * confirmations, and admin responses to an application. Reads credentials
- * from .env — see .env.example.
+ * from config/mail.php when available, otherwise falls back to .env.
  */
 class MailerService
 {
     /**
-     * A misconfigured/unreachable SMTP host must fail fast rather than hang
-     * the request for PHPMailer's 300s default — matters most right after
-     * .env is first set up with placeholder credentials.
+     * Build a PHPMailer instance from .env. Throws early with a clear message
+     * when SMTP is not configured, instead of failing deep inside a connect.
      */
     private static function configured(): PHPMailer
     {
+        $config = self::mailConfig();
+
+        $host = trim((string) ($config['host'] ?? Env::get('MAIL_HOST', '')));
+        $username = trim((string) ($config['username'] ?? Env::get('MAIL_USERNAME', '')));
+        $password = self::normalizePassword((string) ($config['password'] ?? Env::get('MAIL_PASSWORD', '')));
+        $encryption = strtolower(trim((string) ($config['encryption'] ?? Env::get('MAIL_ENCRYPTION', 'tls'))));
+        $port = (int) ($config['port'] ?? Env::get('MAIL_PORT', 0));
+
+        if ($host === '' || $username === '' || $password === '') {
+            throw new MailerException(
+                'SMTP is not configured. Set MAIL_HOST, MAIL_USERNAME, and MAIL_PASSWORD in config/mail.php or .env '
+                . '(for Gmail use smtp.gmail.com + an App Password; quote passwords that contain spaces).'
+            );
+        }
+
+        if (preg_match('/example\.com$/i', $host) || preg_match('/example\.com$/i', $username) || strtolower($password) === 'changeme') {
+            throw new MailerException(
+                'SMTP appears to be using placeholder credentials. Update MAIL_HOST, MAIL_USERNAME, and/or MAIL_PASSWORD in config/mail.php or .env to your real SMTP settings.'
+            );
+        }
+
+        // Sensible defaults when only encryption is set.
+        if ($port <= 0) {
+            $port = $encryption === 'ssl' || $encryption === 'smtps' ? 465 : 587;
+        }
+
         $mail = new PHPMailer(true);
+        $mail->CharSet = 'UTF-8';
+        $mail->Encoding = 'base64';
         $mail->isSMTP();
-        $mail->Timeout = 10;
+        $mail->Timeout = 20;
         $mail->SMTPKeepAlive = false;
-        $mail->Host = Env::get('MAIL_HOST');
+        $mail->Host = $host;
+        $mail->Port = $port;
         $mail->SMTPAuth = true;
-        $mail->Username = Env::get('MAIL_USERNAME');
-        $mail->Password = Env::get('MAIL_PASSWORD');
-        $encryption = Env::get('MAIL_ENCRYPTION', 'tls');
-        $mail->SMTPSecure = $encryption === 'ssl' ? PHPMailer::ENCRYPTION_SMTPS : PHPMailer::ENCRYPTION_STARTTLS;
-        $mail->Port = (int) Env::get('MAIL_PORT', 587);
-        $mail->setFrom(Env::get('MAIL_FROM_ADDRESS', 'no-reply@alnahdaagency.com'), Env::get('MAIL_FROM_NAME', 'Al Nahda Agency'));
+        $mail->Username = $username;
+        $mail->Password = $password;
+        $mail->AuthType = 'LOGIN';
+
+        if ($encryption === 'ssl' || $encryption === 'smtps') {
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+            $mail->SMTPAutoTLS = true;
+        } elseif ($encryption === 'none' || $encryption === 'false' || $encryption === 'off') {
+            $mail->SMTPSecure = '';
+            $mail->SMTPAutoTLS = false;
+        } else {
+            // tls / starttls / anything else → STARTTLS (Gmail port 587)
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+            $mail->SMTPAutoTLS = true;
+        }
+
+        // Local AMPPS / broken CA stores: set MAIL_SSL_VERIFY=0 in .env
+        if (Env::get('MAIL_SSL_VERIFY', '1') === '0') {
+            $mail->SMTPOptions = [
+                'ssl' => [
+                    'verify_peer' => false,
+                    'verify_peer_name' => false,
+                    'allow_self_signed' => true,
+                ],
+            ];
+        }
+
+        if (Env::get('MAIL_DEBUG', '0') === '1') {
+            $mail->SMTPDebug = 2;
+            $mail->Debugoutput = static function (string $str): void {
+                error_log('[smtp] ' . trim($str));
+            };
+        }
+
+        // Gmail requires From to be the authenticated account (or a verified alias).
+        $fromAddress = trim((string) Env::get('MAIL_FROM_ADDRESS', ''));
+        if ($fromAddress === '' || !filter_var($fromAddress, FILTER_VALIDATE_EMAIL)) {
+            $fromAddress = $username;
+        }
+        $fromName = trim((string) ($config['from_name'] ?? Env::get('MAIL_FROM_NAME', Env::get('APP_NAME', 'Al Nahda Agency'))));
+
+        $mail->setFrom($fromAddress, $fromName);
+        $mail->Sender = $username;
+        $mail->addReplyTo($fromAddress, $fromName);
+
         return $mail;
+    }
+
+    private static function mailConfig(): array
+    {
+        $root = dirname(__DIR__, 2);
+        $path = $root . '/config/mail.php';
+        if (file_exists($path)) {
+            return require $path;
+        }
+        return [];
+    }
+
+    /**
+     * Gmail App Passwords are often pasted with spaces ("xxxx xxxx xxxx xxxx").
+     * Strip those spaces so auth works whether or not the value was quoted.
+     */
+    private static function normalizePassword(string $password): string
+    {
+        $password = trim($password);
+        $compact = preg_replace('/\s+/', '', $password) ?? $password;
+        if (preg_match('/^[a-zA-Z0-9]{16}$/', $compact)) {
+            return $compact;
+        }
+        return $password;
+    }
+
+    private static function sendConfigured(PHPMailer $mail, string $failurePrefix): void
+    {
+        try {
+            $mail->send();
+        } catch (PHPMailerException $e) {
+            $detail = trim($mail->ErrorInfo !== '' ? $mail->ErrorInfo : $e->getMessage());
+            error_log('[mailer] ' . $failurePrefix . ': ' . $detail);
+            throw new MailerException($failurePrefix . ': ' . $detail, 0, $e);
+        }
     }
 
     public static function sendOtp(string $toEmail, string $code, string $purpose = 'login'): void
     {
         $mail = self::configured();
-        try {
-            $mail->addAddress($toEmail);
-            $isReset = $purpose === 'password_reset';
-            $mail->isHTML(true);
-            $mail->Subject = $isReset ? 'Your Al Nahda Agency password reset code' : 'Your Al Nahda Agency portal login code';
-            $mail->Body = self::otpHtml($code, $isReset);
-            $mail->AltBody = ($isReset ? 'Your password reset code is: ' : 'Your login code is: ') . $code . ' (expires in 10 minutes).';
-            $mail->send();
-        } catch (PHPMailerException $e) {
-            throw new MailerException('Could not send email: ' . $mail->ErrorInfo);
-        }
+        $isReset = $purpose === 'password_reset';
+        $mail->addAddress($toEmail);
+        $mail->isHTML(true);
+        $mail->Subject = $isReset ? 'Your Al Nahda Agency password reset code' : 'Your Al Nahda Agency portal login code';
+        $mail->Body = self::otpHtml($code, $isReset);
+        $mail->AltBody = ($isReset ? 'Your password reset code is: ' : 'Your login code is: ') . $code . ' (expires in 10 minutes).';
+        self::sendConfigured($mail, 'Could not send email');
     }
 
     /** Sent the moment a public application form submission is saved. */
     public static function sendApplicationReceived(string $toEmail, string $fullName, int $applicationId): void
     {
         $mail = self::configured();
-        try {
-            $mail->addAddress($toEmail);
-            $mail->isHTML(true);
-            $mail->Subject = 'We received your Al Nahda Agency application';
-            $mail->Body = self::applicationReceivedHtml($fullName, $applicationId);
-            $mail->AltBody = "Thank you, {$fullName}. Your application (Ref #{$applicationId}) has been received by Al Nahda Agency and is being reviewed. We will contact you with updates.";
-            $mail->send();
-        } catch (PHPMailerException $e) {
-            throw new MailerException('Could not send confirmation email: ' . $mail->ErrorInfo);
-        }
+        $portalUrl = Url::absolute('/portal/login');
+        $mail->addAddress($toEmail);
+        $mail->isHTML(true);
+        $mail->Subject = 'We received your Al Nahda Agency application';
+        $mail->Body = self::applicationReceivedHtml($fullName, $applicationId, $portalUrl);
+        $mail->AltBody = "Thank you, {$fullName}. Your application (Ref #{$applicationId}) has been received by Al Nahda Agency. "
+            . "Sign in at {$portalUrl} with this email to track your status — we will email you a one-time login code.";
+        self::sendConfigured($mail, 'Could not send confirmation email');
     }
 
     /** Sent when an admin adds a note to an application and chooses to notify the applicant by email. */
     public static function sendApplicationMessage(string $toEmail, string $fullName, string $message, string $status): void
     {
         $mail = self::configured();
-        try {
-            $mail->addAddress($toEmail);
-            $mail->isHTML(true);
-            $mail->Subject = 'Update on your Al Nahda Agency application';
-            $mail->Body = self::applicationMessageHtml($fullName, $message, $status);
-            $mail->AltBody = "Hello {$fullName}, you have a new update on your Al Nahda Agency application: {$message}";
-            $mail->send();
-        } catch (PHPMailerException $e) {
-            throw new MailerException('Could not send message email: ' . $mail->ErrorInfo);
-        }
+        $portalUrl = Url::absolute('/portal/login');
+        $mail->addAddress($toEmail);
+        $mail->isHTML(true);
+        $mail->Subject = 'Update on your Al Nahda Agency application';
+        $mail->Body = self::applicationMessageHtml($fullName, $message, $status, $portalUrl);
+        $mail->AltBody = "Hello {$fullName}, you have a new update on your Al Nahda Agency application: {$message} "
+            . "Sign in at {$portalUrl} to see full history.";
+        self::sendConfigured($mail, 'Could not send message email');
     }
 
     private static function emailShell(string $heading, string $bodyHtml): string
@@ -114,25 +209,35 @@ class MailerService
             <p style="font-size:12px;color:#8a93a3;margin:0;">This code expires in 10 minutes. If you didn\'t request this, you can safely ignore this email.</p>');
     }
 
-    private static function applicationReceivedHtml(string $fullName, int $applicationId): string
+    private static function applicationReceivedHtml(string $fullName, int $applicationId, string $portalUrl): string
     {
         return self::emailShell('Application received', '
             <p style="font-size:13px;color:#5f6b7a;line-height:1.6;margin:0 0 16px;">
               Thank you, <strong>' . htmlspecialchars($fullName) . '</strong>. Your application
-              (Ref #' . $applicationId . ') has been received and our recruitment team will review it shortly.
+              (Ref #' . (int) $applicationId . ') has been received and our recruitment team will review it shortly.
             </p>
-            <p style="font-size:13px;color:#5f6b7a;line-height:1.6;margin:0;">
-              You can sign in to your applicant dashboard any time with this email address to track its status
-              and read updates from our team.
+            <p style="font-size:13px;color:#5f6b7a;line-height:1.6;margin:0 0 16px;">
+              An applicant account was created for this email. Sign in any time to track status and read updates from our team:
+            </p>
+            <p style="margin:0 0 8px;">
+              <a href="' . htmlspecialchars($portalUrl) . '" style="display:inline-block;background:#1c3d7a;color:#ffffff;text-decoration:none;padding:10px 16px;border-radius:6px;font-size:13px;font-weight:bold;">
+                Open applicant portal
+              </a>
+            </p>
+            <p style="font-size:12px;color:#8a93a3;margin:12px 0 0;">
+              Use this same email address — we will send you a one-time login code when you sign in.
             </p>');
     }
 
-    private static function applicationMessageHtml(string $fullName, string $message, string $status): string
+    private static function applicationMessageHtml(string $fullName, string $message, string $status, string $portalUrl): string
     {
         return self::emailShell('Update on your application', '
             <p style="font-size:13px;color:#5f6b7a;line-height:1.6;margin:0 0 6px;">Hello <strong>' . htmlspecialchars($fullName) . '</strong>,</p>
             <p style="font-size:13px;color:#5f6b7a;line-height:1.6;margin:0 0 16px;">Current status: <strong style="color:#1c3d7a;">' . htmlspecialchars($status) . '</strong></p>
             <div style="background:#f5f7fb;border-left:3px solid #f6a623;border-radius:6px;padding:14px 16px;font-size:13px;color:#273140;line-height:1.6;white-space:pre-line;">' . nl2br(htmlspecialchars($message)) . '</div>
-            <p style="font-size:12px;color:#8a93a3;margin-top:18px;">Sign in to your applicant dashboard any time to see the full history of updates.</p>');
+            <p style="font-size:12px;color:#8a93a3;margin-top:18px;">
+              <a href="' . htmlspecialchars($portalUrl) . '" style="color:#1c3d7a;">Sign in to your applicant dashboard</a>
+              any time to see the full history of updates.
+            </p>');
     }
 }

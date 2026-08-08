@@ -85,8 +85,8 @@ $a = $application;
         <textarea name="message" rows="4" required placeholder="Write an update for this applicant…" class="w-full bg-white border border-neutral-300 rounded-lg p-2.5 text-sm focus:outline-none focus:border-[#1c3d7a]"></textarea>
         <div class="flex items-center justify-between">
           <label class="flex items-center gap-2 text-xs font-semibold text-neutral-600">
-            <input type="checkbox" name="notify_email" value="1" checked class="rounded border-neutral-300">
-            Also email this to <?= e($a['email']) ?>
+            <input type="checkbox" name="notify_email" value="1" class="rounded border-neutral-300">
+            Email this update to <?= e($a['email']) ?>
           </label>
           <button type="submit" class="bg-[#132c5c] hover:bg-[#1c3d7a] text-amber-300 text-xs font-bold px-5 py-2.5 rounded-lg uppercase tracking-widest transition-colors cursor-pointer border border-amber-400/30">Send Note</button>
         </div>
@@ -104,6 +104,10 @@ $a = $application;
             <option value="<?= e($status) ?>" <?= $a['status'] === $status ? 'selected' : '' ?>><?= e($statusLabels[$status]) ?></option>
           <?php endforeach; ?>
         </select>
+        <label class="flex items-center gap-2 text-xs text-neutral-600 cursor-pointer">
+          <input type="checkbox" name="notify_email" value="1" checked class="rounded border-neutral-300">
+          Email the applicant about this status change
+        </label>
         <button type="submit" class="w-full bg-[#132c5c] hover:bg-[#1c3d7a] text-amber-300 text-xs font-bold py-2.5 rounded-lg uppercase tracking-widest transition-colors cursor-pointer border border-amber-400/30">Update Status</button>
       </form>
     </div>

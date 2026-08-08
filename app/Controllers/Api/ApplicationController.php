@@ -72,17 +72,31 @@ class ApplicationController
         $applicantId = Applicant::findOrCreateFromApplication($data['email'], $data['phone'], $data['fullname']);
         $applicationId = Application::create($data, $applicantId);
 
+        $emailSent = false;
+        $emailError = null;
         try {
             MailerService::sendApplicationReceived($data['email'], $data['fullname'], $applicationId);
+            $emailSent = true;
         } catch (MailerException $e) {
-            // Non-fatal — the application is already saved even if the confirmation email fails to send.
+            // Non-fatal for the applicant — the application + portal account are already saved.
+            $emailError = $e->getMessage();
+            error_log('[applications] confirmation email to ' . $data['email'] . ' failed: ' . $emailError);
         }
 
-        $this->respond([
+        $payload = [
             'success' => true,
-            'message' => 'Application submitted successfully! Our recruiters will be in touch.',
+            'message' => $emailSent
+                ? 'Application submitted successfully! Check your email for a confirmation and portal login link.'
+                : 'Application submitted successfully! Our recruiters will be in touch. (Confirmation email could not be sent — you can still sign in at the applicant portal with this email.)',
             'applicationId' => $applicationId,
-        ]);
+            'accountCreated' => true,
+            'emailSent' => $emailSent,
+        ];
+        if ($emailError !== null && \App\Core\Env::get('APP_DEBUG', '0') === '1') {
+            $payload['emailError'] = $emailError;
+        }
+
+        $this->respond($payload);
     }
 
     private function respond(array $payload, int $status = 200): void
