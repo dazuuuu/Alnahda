@@ -1,0 +1,7 @@
+# Document root on some hosts points here (project root) instead of public/.
+# Internally rewrite every request into public/ so public/.htaccess and
+# public/index.php handle routing — browser URLs stay unchanged (no /public/).
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
