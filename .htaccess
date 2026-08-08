@@ -4,8 +4,14 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # If the request already targets /public/..., don't nest another public/.
-    RewriteRule ^public/(.*)$ public/$1 [L]
+    # Real files already under public/ (CSS, JS, images) — serve as-is.
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^public/ - [L]
 
+    # Stale /public/... links that are not real files → front controller.
+    RewriteRule ^public/(.*)$ public/index.php [QSA,L]
+
+    # Everything else → public/ (then public/.htaccess routes to index.php).
     RewriteRule ^(.*)$ public/$1 [L]
 </IfModule>

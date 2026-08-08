@@ -3,14 +3,12 @@
 namespace App\Core;
 
 /**
- * Computes the app's base path once per request so every generated link/asset
+ * Computes the app's base path once per request (e.g. "/Alnahda/public"
+ * when hosted in a subfolder, or "" at domain root) so every generated link/asset
  * URL works regardless of where the vhost points.
  *
- * Prefer APP_URL from .env (path portion only) so a host that rewrites into
- * public/ does not leak "/public" into links. Fall back to SCRIPT_NAME.
- *
- * Local example:  APP_URL=http://localhost/Alnahda/public  → base "/Alnahda/public"
- * Production:     APP_URL=https://alnahdaagency.com        → base "" (domain root)
+ * Asset and route URLs always follow the live request (SCRIPT_NAME), not APP_URL,
+ * so CSS/JS keep working locally even if .env still has a production domain.
  */
 class Url
 {
@@ -22,42 +20,18 @@ class Url
             return;
         }
 
-        $fromEnv = self::basePathFromAppUrl();
-        if ($fromEnv !== null) {
-            self::$basePath = $fromEnv;
-            return;
-        }
-
-        // dirname(SCRIPT_NAME) for public/index.php is the folder the browser sees it in.
-        // When the project-root .htaccess rewrites into public/, SCRIPT_NAME often
-        // becomes "/public/index.php" — strip that misleading "/public" segment.
-        $scriptDir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? '/index.php'));
+        $scriptName = str_replace('\\', '/', (string) ($_SERVER['SCRIPT_NAME'] ?? '/index.php'));
+        $scriptDir = dirname($scriptName);
         $scriptDir = $scriptDir === '/' ? '' : rtrim($scriptDir, '/');
-        if ($scriptDir === '/public' || str_ends_with($scriptDir, '/public')) {
-            $scriptDir = substr($scriptDir, 0, -strlen('/public'));
-        }
-        self::$basePath = $scriptDir === '/' ? '' : $scriptDir;
-    }
 
-    /**
-     * Path prefix from APP_URL, or null if APP_URL is unset/invalid.
-     * https://alnahdaagency.com      → ""
-     * https://alnahdaagency.com/app  → "/app"
-     * http://localhost/Alnahda/public → "/Alnahda/public"
-     */
-    private static function basePathFromAppUrl(): ?string
-    {
-        $appUrl = trim((string) Env::get('APP_URL', ''));
-        if ($appUrl === '') {
-            return null;
+        // Project-root .htaccess rewrite makes SCRIPT_NAME "/public/index.php".
+        // That "/public" must not appear in browser URLs (assets or routes).
+        // Do NOT strip when the app is really installed under ".../Alnahda/public".
+        if ($scriptDir === '/public') {
+            $scriptDir = '';
         }
-        $parts = parse_url($appUrl);
-        if ($parts === false) {
-            return null;
-        }
-        $path = $parts['path'] ?? '';
-        $path = '/' . trim($path, '/');
-        return $path === '/' ? '' : rtrim($path, '/');
+
+        self::$basePath = $scriptDir;
     }
 
     public static function basePath(): string
@@ -66,7 +40,7 @@ class Url
         return self::$basePath;
     }
 
-    /** App-relative URL for a route, e.g. Url::to('/admin') → "/admin" or "/Alnahda/public/admin" */
+    /** Absolute app URL for a route, e.g. Url::to('/admin/products') */
     public static function to(string $path = '/'): string
     {
         self::init();
@@ -75,7 +49,7 @@ class Url
 
     /**
      * Fully-qualified URL for emails / external links.
-     * Prefers APP_URL from .env, then falls back to the current request host.
+     * Uses APP_URL when set; otherwise the current request host + base path.
      */
     public static function absolute(string $path = '/'): string
     {
@@ -107,11 +81,13 @@ class Url
         if (self::$basePath !== '' && strpos($uri, self::$basePath) === 0) {
             $uri = substr($uri, strlen(self::$basePath));
         }
-        // Also strip a bare "/public" prefix if a rewritten SCRIPT_NAME leaked into bookmarks/links.
-        if (strpos($uri, '/public/') === 0) {
-            $uri = substr($uri, strlen('/public'));
-        } elseif ($uri === '/public') {
-            $uri = '/';
+        // Stale bookmarks/links that still include a leading /public/ (rewrite artifact).
+        if (self::$basePath === '') {
+            if (strpos($uri, '/public/') === 0) {
+                $uri = substr($uri, strlen('/public'));
+            } elseif ($uri === '/public') {
+                $uri = '/';
+            }
         }
         $uri = '/' . ltrim($uri, '/');
         return rtrim($uri, '/') === '' ? '/' : rtrim($uri, '/');
