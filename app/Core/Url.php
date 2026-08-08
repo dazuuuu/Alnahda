@@ -78,6 +78,18 @@ class Url
     {
         self::init();
         $uri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?? '/';
+
+        // ErrorDocument 404 /index.php — prefer the original requested path.
+        if ($uri === '/index.php' || $uri === self::$basePath . '/index.php') {
+            foreach (['REDIRECT_URL', 'REDIRECT_URI', 'HTTP_X_ORIGINAL_URL'] as $key) {
+                $redirect = $_SERVER[$key] ?? null;
+                if (is_string($redirect) && $redirect !== '' && $redirect !== '/index.php') {
+                    $uri = parse_url($redirect, PHP_URL_PATH) ?: $redirect;
+                    break;
+                }
+            }
+        }
+
         if (self::$basePath !== '' && strpos($uri, self::$basePath) === 0) {
             $uri = substr($uri, strlen(self::$basePath));
         }
@@ -89,7 +101,7 @@ class Url
                 $uri = '/';
             }
         }
-        $uri = '/' . ltrim($uri, '/');
+        $uri = '/' . ltrim((string) $uri, '/');
         return rtrim($uri, '/') === '' ? '/' : rtrim($uri, '/');
     }
 }

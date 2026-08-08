@@ -1,0 +1,25 @@
+# COPY THIS FILE TO:  public_html/.htaccess
+# (FTP often hides files that start with a dot — upload this then rename it to .htaccess)
+#
+# Without .htaccess on the server, ONLY https://alnahdaagency.com/ works
+# (DirectoryIndex → index.php). /apply, /admin, /portal, /testimonials will all 404.
+
+DirectoryIndex index.php
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    Options -MultiViews
+
+    RewriteCond %{REQUEST_FILENAME} -f
+    RewriteRule ^ - [L]
+
+    RewriteRule ^ index.php [QSA,L]
+</IfModule>
+
+<IfModule mod_dir.c>
+    FallbackResource /index.php
+</IfModule>
+
+ErrorDocument 404 /index.php

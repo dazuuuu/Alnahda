@@ -42,6 +42,16 @@ class Router
         $method = Request::method();
         $path = Url::currentPath();
 
+        // When Apache uses ErrorDocument 404 /index.php, some hosts leave a
+        // trailing script name in the path — normalize so routes still match.
+        if ($path === '/index.php' || str_ends_with($path, '/index.php')) {
+            $redirect = $_SERVER['REDIRECT_URL'] ?? $_SERVER['REDIRECT_URI'] ?? '';
+            if (is_string($redirect) && $redirect !== '') {
+                $path = '/' . ltrim(parse_url($redirect, PHP_URL_PATH) ?: $redirect, '/');
+                $path = rtrim($path, '/') === '' ? '/' : rtrim($path, '/');
+            }
+        }
+
         foreach ($this->routes as $route) {
             if ($route['method'] !== $method) {
                 continue;

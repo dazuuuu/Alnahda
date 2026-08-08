@@ -1,9 +1,26 @@
-RewriteEngine On
+DirectoryIndex index.php
 
-# Serve real files/directories (assets, uploads, etc.) directly...
-RewriteCond %{REQUEST_FILENAME} -f [OR]
-RewriteCond %{REQUEST_FILENAME} -d
-RewriteRule ^ - [L]
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
 
-# ...everything else is routed through the single front controller.
-RewriteRule ^ index.php [QSA,L]
+    # Disable MultiViews — it can turn /apply into a phantom "apply.*" lookup and 404.
+    Options -MultiViews
+
+    # Real files (CSS, JS, images, uploads) are served as-is.
+    RewriteCond %{REQUEST_FILENAME} -f
+    RewriteRule ^ - [L]
+
+    # Everything else — including paths that match a directory name — goes to the front controller.
+    # (Do NOT skip on -d: an empty /admin folder on the server would otherwise cause a 404.)
+    RewriteRule ^ index.php [QSA,L]
+</IfModule>
+
+# Apache 2.4+ / many cPanel hosts: if rewrite is off or .htaccess was missed briefly,
+# unmapped URLs still reach index.php so /apply and /admin work.
+<IfModule mod_dir.c>
+    FallbackResource /index.php
+</IfModule>
+
+# Last-resort fallback used by some shared hosts when RewriteEngine is restricted.
+ErrorDocument 404 /index.php
