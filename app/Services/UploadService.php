@@ -6,14 +6,22 @@ class UploadException extends \Exception {}
 
 /**
  * Image upload handling for the admin panel (country flags/cover photos).
- * Validates, renames, and stores under public/assets/uploads/{subdir}/ —
+ * Validates, renames, and stores under {webroot}/assets/uploads/{subdir}/ —
  * returns the relative URL to save in the DB.
  */
 class UploadService
 {
+    private static function publicPath(): string
+    {
+        if (defined('PUBLIC_PATH')) {
+            return rtrim(PUBLIC_PATH, '/\\');
+        }
+        return dirname(__DIR__, 2) . '/public';
+    }
+
     private static function uploadsRoot(): string
     {
-        return dirname(__DIR__, 2) . '/public/assets/uploads';
+        return self::publicPath() . '/assets/uploads';
     }
 
     /** @param array $file One entry from $_FILES (e.g. $_FILES['image']) */
@@ -67,7 +75,7 @@ class UploadService
         if (!$relativePath || strpos($relativePath, 'assets/uploads/') !== 0) {
             return;
         }
-        $full = dirname(__DIR__, 2) . '/public/' . $relativePath;
+        $full = self::publicPath() . '/' . $relativePath;
         if (is_file($full)) {
             @unlink($full);
         }

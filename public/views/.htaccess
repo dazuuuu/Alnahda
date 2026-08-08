@@ -1,0 +1,7 @@
+# Views are PHP-included by the app — never serve them as public URLs.
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+    Deny from all
+</IfModule>

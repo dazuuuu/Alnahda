@@ -10,14 +10,14 @@ use App\Services\MailerService;
 
 /**
  * POST /api/applications — called by assets/site/js/script.js's registration
- * form (app/Views/site/apply.php). Persists the submission, links it to a
+ * form (public/views/site/apply.php). Persists the submission, links it to a
  * portal account (created automatically if this is a new email/phone), and
  * emails a confirmation. Mirrors the legacy process.php's column list, see
  * origin_db/uhwlqvsp_alnahda.sql.
  */
 class ApplicationController
 {
-    /** Required fields — matches the `required` inputs in app/Views/site/apply.php. */
+    /** Required fields — matches the `required` inputs in public/views/site/apply.php. */
     private const REQUIRED = [
         'fullname', 'email', 'weight', 'phone', 'county', 'age', 'preferredRole',
         'gender', 'languages', 'travelledSaudia', 'lebanon', 'jordan', 'medicalFit',

@@ -4,7 +4,7 @@ namespace App\Core;
 
 /**
  * Loads .env (via vlucas/phpdotenv) once per request from the project root
- * (one level above public/), and exposes a global env() helper.
+ * (one level above the web root), and exposes a global env() helper.
  */
 class Env
 {
@@ -15,7 +15,7 @@ class Env
         if (self::$loaded) {
             return;
         }
-        $root = dirname(__DIR__, 2);
+        $root = defined('BASE_PATH') ? BASE_PATH : dirname(__DIR__, 2);
         if (file_exists($root . '/.env')) {
             $dotenv = \Dotenv\Dotenv::createImmutable($root);
             $dotenv->safeLoad();
