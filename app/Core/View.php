@@ -7,7 +7,8 @@ namespace App\Core;
  * "chunk" (layout-header, page body, layout-footer) matching the pattern
  * already used throughout the templates — no compiled templating language.
  *
- * Templates live under public/views/ (blocked from direct HTTP access).
+ * Templates live under app/Views/ (outside the web root on hosting —
+ * public_html/ — so they are never served as static URLs).
  */
 class View
 {
@@ -15,7 +16,7 @@ class View
 
     public static function render(string $view, array $data = []): void
     {
-        self::$basePath = self::$basePath ?? dirname(__DIR__, 2) . '/public/views/';
+        self::$basePath = self::$basePath ?? dirname(__DIR__) . '/Views/';
         $file = self::$basePath . str_replace('.', '/', $view) . '.php';
         if (!is_file($file)) {
             throw new \RuntimeException("View not found: {$view} ({$file})");
