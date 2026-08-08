@@ -9,7 +9,7 @@ use App\Models\Testimonial;
 /**
  * The public marketing site — home page, the job-application form, and the
  * testimonials page. All share the same header/footer chrome
- * (public/views/site/layout-*).
+ * (app/Views/site/layout-*).
  */
 class SiteController
 {
