@@ -1,11 +1,16 @@
 <?php
 /**
  * Al NAHDA Agency — single front controller (see .htaccess: every request
- * that isn't a real file/directory is routed through this file). All
- * application code lives outside the web root, in /app.
+ * that isn't a real file/directory is routed through this file).
+ *
+ * On hosting this file lives in public_html/ (the web root). Everything else
+ * (app/, vendor/, .env) stays one level above, outside public_html.
  */
 
-require dirname(__DIR__) . '/app/bootstrap.php';
+define('PUBLIC_PATH', __DIR__);
+define('BASE_PATH', dirname(__DIR__));
+
+require BASE_PATH . '/app/bootstrap.php';
 
 use App\Core\Router;
 use App\Controllers\SiteController;

@@ -22,7 +22,8 @@ function asset(string $path): string
  */
 function versionedAsset(string $path): string
 {
-    $full = dirname(__DIR__, 2) . '/public/' . ltrim($path, '/');
+    $public = defined('PUBLIC_PATH') ? PUBLIC_PATH : (dirname(__DIR__, 2) . '/public');
+    $full = rtrim($public, '/\\') . '/' . ltrim($path, '/');
     $version = is_file($full) ? filemtime($full) : null;
     return asset($path) . ($version ? '?v=' . $version : '');
 }

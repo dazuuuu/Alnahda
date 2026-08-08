@@ -1,11 +1,12 @@
 <?php
 /**
  * Al NAHDA Agency application bootstrap — required once by public/index.php
- * (the only PHP file Apache ever executes; see public/.htaccess) before the
- * router runs.
+ * (or public_html/index.php on hosting) before the router runs.
  */
 
-require dirname(__DIR__) . '/vendor/autoload.php';
+$basePath = defined('BASE_PATH') ? BASE_PATH : dirname(__DIR__);
+
+require $basePath . '/vendor/autoload.php';
 require __DIR__ . '/Helpers/functions.php';
 
 App\Core\Env::load();
