@@ -12,7 +12,7 @@ class MailerException extends \Exception {}
 /**
  * SMTP mailer (PHPMailer) for portal login codes, application-received
  * confirmations, and admin responses to an application. Reads credentials
- * from .env — see .env.example.
+ * from config/mail.php when available, otherwise falls back to .env.
  */
 class MailerService
 {
@@ -22,16 +22,24 @@ class MailerService
      */
     private static function configured(): PHPMailer
     {
-        $host = trim((string) Env::get('MAIL_HOST', ''));
-        $username = trim((string) Env::get('MAIL_USERNAME', ''));
-        $password = self::normalizePassword((string) Env::get('MAIL_PASSWORD', ''));
-        $encryption = strtolower(trim((string) Env::get('MAIL_ENCRYPTION', 'tls')));
-        $port = (int) Env::get('MAIL_PORT', 0);
+        $config = self::mailConfig();
+
+        $host = trim((string) ($config['host'] ?? Env::get('MAIL_HOST', '')));
+        $username = trim((string) ($config['username'] ?? Env::get('MAIL_USERNAME', '')));
+        $password = self::normalizePassword((string) ($config['password'] ?? Env::get('MAIL_PASSWORD', '')));
+        $encryption = strtolower(trim((string) ($config['encryption'] ?? Env::get('MAIL_ENCRYPTION', 'tls'))));
+        $port = (int) ($config['port'] ?? Env::get('MAIL_PORT', 0));
 
         if ($host === '' || $username === '' || $password === '') {
             throw new MailerException(
-                'SMTP is not configured. Set MAIL_HOST, MAIL_USERNAME, and MAIL_PASSWORD in .env '
+                'SMTP is not configured. Set MAIL_HOST, MAIL_USERNAME, and MAIL_PASSWORD in config/mail.php or .env '
                 . '(for Gmail use smtp.gmail.com + an App Password; quote passwords that contain spaces).'
+            );
+        }
+
+        if (preg_match('/example\.com$/i', $host) || preg_match('/example\.com$/i', $username) || strtolower($password) === 'changeme') {
+            throw new MailerException(
+                'SMTP appears to be using placeholder credentials. Update MAIL_HOST, MAIL_USERNAME, and/or MAIL_PASSWORD in config/mail.php or .env to your real SMTP settings.'
             );
         }
 
@@ -88,13 +96,23 @@ class MailerService
         if ($fromAddress === '' || !filter_var($fromAddress, FILTER_VALIDATE_EMAIL)) {
             $fromAddress = $username;
         }
-        $fromName = trim((string) Env::get('MAIL_FROM_NAME', Env::get('APP_NAME', 'Al Nahda Agency')));
+        $fromName = trim((string) ($config['from_name'] ?? Env::get('MAIL_FROM_NAME', Env::get('APP_NAME', 'Al Nahda Agency'))));
 
         $mail->setFrom($fromAddress, $fromName);
         $mail->Sender = $username;
         $mail->addReplyTo($fromAddress, $fromName);
 
         return $mail;
+    }
+
+    private static function mailConfig(): array
+    {
+        $root = dirname(__DIR__, 2);
+        $path = $root . '/config/mail.php';
+        if (file_exists($path)) {
+            return require $path;
+        }
+        return [];
     }
 
     /**

@@ -21,4 +21,3 @@ return [
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
     'down' => 'DROP TABLE IF EXISTS testimonials',
 ];
-
