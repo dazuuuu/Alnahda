@@ -1,0 +1,143 @@
+[29-Sep-2025 08:54:39 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Access denied for user 'uhwlqvsp_Charles'@'localhost' to database 'uhwlqvsp_alnahda' in /home/uhwlqvsp/public_html/process.php:9
+Stack trace:
+#0 /home/uhwlqvsp/public_html/process.php(9): mysqli->__construct('localhost', 'uhwlqvsp_Charle...', Object(SensitiveParameterValue), 'uhwlqvsp_alnahd...')
+#1 {main}
+  thrown in /home/uhwlqvsp/public_html/process.php on line 9
+[29-Sep-2025 09:09:24 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Access denied for user 'uhwlqvsp_Charles'@'localhost' to database 'uhwlqvsp_alnahda' in /home/uhwlqvsp/public_html/process.php:9
+Stack trace:
+#0 /home/uhwlqvsp/public_html/process.php(9): mysqli->__construct('localhost', 'uhwlqvsp_Charle...', Object(SensitiveParameterValue), 'uhwlqvsp_alnahd...')
+#1 {main}
+  thrown in /home/uhwlqvsp/public_html/process.php on line 9
+[20-Oct-2025 07:02:37 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Unknown column 'weight' in 'field list' in /home/uhwlqvsp/public_html/process.php:35
+Stack trace:
+#0 /home/uhwlqvsp/public_html/process.php(35): mysqli->prepare('INSERT INTO app...')
+#1 {main}
+  thrown in /home/uhwlqvsp/public_html/process.php on line 35
+[20-Oct-2025 07:05:31 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Unknown column 'weight' in 'field list' in /home/uhwlqvsp/public_html/process.php:35
+Stack trace:
+#0 /home/uhwlqvsp/public_html/process.php(35): mysqli->prepare('INSERT INTO app...')
+#1 {main}
+  thrown in /home/uhwlqvsp/public_html/process.php on line 35
+[20-Oct-2025 07:18:12 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Column count doesn't match value count at row 1 in /home/uhwlqvsp/public_html/process.php:35
+Stack trace:
+#0 /home/uhwlqvsp/public_html/process.php(35): mysqli->prepare('INSERT INTO app...')
+#1 {main}
+  thrown in /home/uhwlqvsp/public_html/process.php on line 35
+[20-Oct-2025 07:22:30 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Column count doesn't match value count at row 1 in /home/uhwlqvsp/public_html/process.php:35
+Stack trace:
+#0 /home/uhwlqvsp/public_html/process.php(35): mysqli->prepare('INSERT INTO app...')
+#1 {main}
+  thrown in /home/uhwlqvsp/public_html/process.php on line 35
+[20-Oct-2025 07:23:32 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Column count doesn't match value count at row 1 in /home/uhwlqvsp/public_html/process.php:35
+Stack trace:
+#0 /home/uhwlqvsp/public_html/process.php(35): mysqli->prepare('INSERT INTO app...')
+#1 {main}
+  thrown in /home/uhwlqvsp/public_html/process.php on line 35
+[20-Oct-2025 07:26:52 UTC] PHP Fatal error:  Uncaught ArgumentCountError: The number of elements in the type definition string must match the number of bind variables in /home/uhwlqvsp/public_html/process.php:44
+Stack trace:
+#0 /home/uhwlqvsp/public_html/process.php(44): mysqli_stmt->bind_param('ssssisssssssi', 'charles Ndungu', 'hkwzghq@gmail.c...', 41, '+254791353785', 'Kakamega', 20, 'Construction Wo...', 21, '2025-10-15', 'English', '', '2025-10-21', '21:21', 1)
+#1 {main}
+  thrown in /home/uhwlqvsp/public_html/process.php on line 44
+[20-Oct-2025 07:44:40 UTC] PHP Parse error:  syntax error, unexpected variable "$languages", expecting ")" in /home/uhwlqvsp/public_html/process.php on line 47
+[20-Oct-2025 07:46:38 UTC] PHP Parse error:  syntax error, unexpected variable "$languages", expecting ")" in /home/uhwlqvsp/public_html/process.php on line 47
+[25-Oct-2025 13:47:14 UTC] PHP Warning:  Undefined array key "experienceYears" in /home/uhwlqvsp/public_html/process.php on line 27
+[25-Oct-2025 13:47:14 UTC] PHP Warning:  Undefined array key "availability" in /home/uhwlqvsp/public_html/process.php on line 28
+[25-Oct-2025 13:47:14 UTC] PHP Warning:  Undefined array key "experienceNotes" in /home/uhwlqvsp/public_html/process.php on line 31
+[25-Oct-2025 13:47:14 UTC] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in /home/uhwlqvsp/public_html/process.php on line 31
+[25-Oct-2025 13:47:14 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Column 'availability' cannot be null in /home/uhwlqvsp/public_html/process.php:54
+Stack trace:
+#0 /home/uhwlqvsp/public_html/process.php(54): mysqli_stmt->execute()
+#1 {main}
+  thrown in /home/uhwlqvsp/public_html/process.php on line 54
+[25-Oct-2025 14:27:54 UTC] PHP Warning:  Undefined array key "experienceYears" in /home/uhwlqvsp/public_html/process.php on line 27
+[25-Oct-2025 14:27:54 UTC] PHP Warning:  Undefined array key "availability" in /home/uhwlqvsp/public_html/process.php on line 28
+[25-Oct-2025 14:27:54 UTC] PHP Warning:  Undefined array key "experienceNotes" in /home/uhwlqvsp/public_html/process.php on line 31
+[25-Oct-2025 14:27:54 UTC] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in /home/uhwlqvsp/public_html/process.php on line 31
+[25-Oct-2025 14:27:54 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Column 'availability' cannot be null in /home/uhwlqvsp/public_html/process.php:54
+Stack trace:
+#0 /home/uhwlqvsp/public_html/process.php(54): mysqli_stmt->execute()
+#1 {main}
+  thrown in /home/uhwlqvsp/public_html/process.php on line 54
+[25-Oct-2025 14:32:53 UTC] PHP Warning:  Undefined array key "experienceYears" in /home/uhwlqvsp/public_html/process.php on line 27
+[25-Oct-2025 14:32:53 UTC] PHP Warning:  Undefined array key "availability" in /home/uhwlqvsp/public_html/process.php on line 28
+[25-Oct-2025 14:32:53 UTC] PHP Warning:  Undefined array key "experienceNotes" in /home/uhwlqvsp/public_html/process.php on line 31
+[25-Oct-2025 14:32:53 UTC] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in /home/uhwlqvsp/public_html/process.php on line 31
+[25-Oct-2025 14:32:53 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Column 'availability' cannot be null in /home/uhwlqvsp/public_html/process.php:54
+Stack trace:
+#0 /home/uhwlqvsp/public_html/process.php(54): mysqli_stmt->execute()
+#1 {main}
+  thrown in /home/uhwlqvsp/public_html/process.php on line 54
+[25-Oct-2025 14:41:20 UTC] PHP Warning:  Undefined array key "experienceYears" in /home/uhwlqvsp/public_html/process.php on line 27
+[25-Oct-2025 14:41:20 UTC] PHP Warning:  Undefined array key "availability" in /home/uhwlqvsp/public_html/process.php on line 28
+[25-Oct-2025 14:41:20 UTC] PHP Warning:  Undefined array key "experienceNotes" in /home/uhwlqvsp/public_html/process.php on line 31
+[25-Oct-2025 14:41:20 UTC] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in /home/uhwlqvsp/public_html/process.php on line 31
+[25-Oct-2025 14:41:20 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Column 'availability' cannot be null in /home/uhwlqvsp/public_html/process.php:54
+Stack trace:
+#0 /home/uhwlqvsp/public_html/process.php(54): mysqli_stmt->execute()
+#1 {main}
+  thrown in /home/uhwlqvsp/public_html/process.php on line 54
+[25-Oct-2025 14:47:22 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Unknown column 'passportFile' in 'field list' in /home/uhwlqvsp/public_html/process.php:56
+Stack trace:
+#0 /home/uhwlqvsp/public_html/process.php(56): mysqli->prepare('\r\n        INSER...')
+#1 {main}
+  thrown in /home/uhwlqvsp/public_html/process.php on line 56
+[25-Oct-2025 14:47:39 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Unknown column 'passportFile' in 'field list' in /home/uhwlqvsp/public_html/process.php:56
+Stack trace:
+#0 /home/uhwlqvsp/public_html/process.php(56): mysqli->prepare('\r\n        INSER...')
+#1 {main}
+  thrown in /home/uhwlqvsp/public_html/process.php on line 56
+[25-Oct-2025 14:47:43 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Unknown column 'passportFile' in 'field list' in /home/uhwlqvsp/public_html/process.php:56
+Stack trace:
+#0 /home/uhwlqvsp/public_html/process.php(56): mysqli->prepare('\r\n        INSER...')
+#1 {main}
+  thrown in /home/uhwlqvsp/public_html/process.php on line 56
+[25-Oct-2025 14:48:04 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Unknown column 'passportFile' in 'field list' in /home/uhwlqvsp/public_html/process.php:56
+Stack trace:
+#0 /home/uhwlqvsp/public_html/process.php(56): mysqli->prepare('\r\n        INSER...')
+#1 {main}
+  thrown in /home/uhwlqvsp/public_html/process.php on line 56
+[25-Oct-2025 14:48:15 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Unknown column 'passportFile' in 'field list' in /home/uhwlqvsp/public_html/process.php:56
+Stack trace:
+#0 /home/uhwlqvsp/public_html/process.php(56): mysqli->prepare('\r\n        INSER...')
+#1 {main}
+  thrown in /home/uhwlqvsp/public_html/process.php on line 56
+[25-Oct-2025 14:48:35 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Unknown column 'passportFile' in 'field list' in /home/uhwlqvsp/public_html/process.php:56
+Stack trace:
+#0 /home/uhwlqvsp/public_html/process.php(56): mysqli->prepare('\r\n        INSER...')
+#1 {main}
+  thrown in /home/uhwlqvsp/public_html/process.php on line 56
+[25-Oct-2025 14:49:14 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Unknown column 'passportFile' in 'field list' in /home/uhwlqvsp/public_html/process.php:56
+Stack trace:
+#0 /home/uhwlqvsp/public_html/process.php(56): mysqli->prepare('\r\n        INSER...')
+#1 {main}
+  thrown in /home/uhwlqvsp/public_html/process.php on line 56
+[25-Oct-2025 14:49:27 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Unknown column 'passportFile' in 'field list' in /home/uhwlqvsp/public_html/process.php:56
+Stack trace:
+#0 /home/uhwlqvsp/public_html/process.php(56): mysqli->prepare('\r\n        INSER...')
+#1 {main}
+  thrown in /home/uhwlqvsp/public_html/process.php on line 56
+[25-Oct-2025 14:49:36 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Unknown column 'passportFile' in 'field list' in /home/uhwlqvsp/public_html/process.php:56
+Stack trace:
+#0 /home/uhwlqvsp/public_html/process.php(56): mysqli->prepare('\r\n        INSER...')
+#1 {main}
+  thrown in /home/uhwlqvsp/public_html/process.php on line 56
+[25-Oct-2025 15:17:22 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Unknown column 'passportFile' in 'field list' in /home/uhwlqvsp/public_html/process.php:56
+Stack trace:
+#0 /home/uhwlqvsp/public_html/process.php(56): mysqli->prepare('\r\n        INSER...')
+#1 {main}
+  thrown in /home/uhwlqvsp/public_html/process.php on line 56
+[25-Oct-2025 15:19:06 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Unknown column 'phone2' in 'field list' in /home/uhwlqvsp/public_html/process.php:44
+Stack trace:
+#0 /home/uhwlqvsp/public_html/process.php(44): mysqli->prepare('\r\n        INSER...')
+#1 {main}
+  thrown in /home/uhwlqvsp/public_html/process.php on line 44
+[25-Oct-2025 16:27:37 UTC] PHP Fatal error:  Uncaught ArgumentCountError: The number of variables must match the number of parameters in the prepared statement in /home/uhwlqvsp/public_html/process.php:61
+Stack trace:
+#0 /home/uhwlqvsp/public_html/process.php(61): mysqli_stmt->bind_param('ssdssisssssssii', 'charles Ndungu', 'zvuqijljrnvtnbo...', 80.0, '+254791353785', 'Kilifi', 40, 'HOUSEMAID', NULL, NULL, 'male', 'English', NULL, NULL, NULL, 1)
+#1 {main}
+  thrown in /home/uhwlqvsp/public_html/process.php on line 61
+[25-Oct-2025 16:28:32 UTC] PHP Fatal error:  Uncaught ArgumentCountError: The number of variables must match the number of parameters in the prepared statement in /home/uhwlqvsp/public_html/process.php:61
+Stack trace:
+#0 /home/uhwlqvsp/public_html/process.php(61): mysqli_stmt->bind_param('ssdssisssssssii', 'charles Ndungu', 'zvuqijljrnvtnbo...', 80.0, '+254791353785', 'Kilifi', 50, 'HOUSEMAID', NULL, NULL, 'male', 'English', NULL, NULL, NULL, 1)
+#1 {main}
+  thrown in /home/uhwlqvsp/public_html/process.php on line 61

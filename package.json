@@ -1,0 +1,12 @@
+{
+  "name": "alnahda-agency-assets",
+  "private": true,
+  "description": "Tailwind build for the admin panel and applicant portal (public site uses plain CSS, not Tailwind).",
+  "scripts": {
+    "build:css": "tailwindcss -i public/assets/css/tailwind-src.css -o public/assets/css/tailwind.css --minify"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.3.3",
+    "tailwindcss": "^4.3.3"
+  }
+}
