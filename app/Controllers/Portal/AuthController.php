@@ -52,8 +52,13 @@ class AuthController
                     $_SESSION['pending_applicant_id'] = (int) $applicant['id'];
                     redirect('/portal/verify');
                 } catch (MailerException $e) {
+                    error_log('[portal/login] OTP email to ' . $applicant['email'] . ' failed: ' . $e->getMessage());
                     $error = 'We could not send your login code right now. Please try again shortly, or contact Alnahdaagency@gmail.com.';
+                    if (\App\Core\Env::get('APP_DEBUG', '0') === '1') {
+                        $error .= ' SMTP detail: ' . $e->getMessage();
+                    }
                 } catch (\Throwable $e) {
+                    error_log('[portal/login] unexpected: ' . $e->getMessage());
                     $error = 'Something went wrong. Please try again shortly.';
                 }
             } else {
@@ -100,8 +105,13 @@ class AuthController
                 OtpService::issueAndSend((int) $pending['id'], $pending['email'], 'login');
                 $notice = 'A new code has been sent to ' . $pending['email'] . '.';
             } catch (MailerException $e) {
+                error_log('[portal/verify] OTP resend to ' . $pending['email'] . ' failed: ' . $e->getMessage());
                 $error = 'We could not resend the code right now. Please try again shortly.';
+                if (\App\Core\Env::get('APP_DEBUG', '0') === '1') {
+                    $error .= ' SMTP detail: ' . $e->getMessage();
+                }
             } catch (\Throwable $e) {
+                error_log('[portal/verify] unexpected: ' . $e->getMessage());
                 $error = 'Something went wrong. Please try again shortly.';
             }
         } else {

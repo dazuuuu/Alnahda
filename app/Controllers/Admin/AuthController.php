@@ -79,8 +79,13 @@ class AuthController
                     flashSuccess('A 6-digit reset code has been sent to ' . $admin['email'] . '.');
                     redirect('/admin/reset-password');
                 } catch (MailerException $e) {
+                    error_log('[admin/forgot] OTP email to ' . $admin['email'] . ' failed: ' . $e->getMessage());
                     $error = 'We could not send the reset code right now. Please try again shortly.';
+                    if (\App\Core\Env::get('APP_DEBUG', '0') === '1') {
+                        $error .= ' SMTP detail: ' . $e->getMessage();
+                    }
                 } catch (\Throwable $e) {
+                    error_log('[admin/forgot] unexpected: ' . $e->getMessage());
                     $error = 'Something went wrong. Please try again shortly.';
                 }
             } else {
@@ -125,8 +130,13 @@ class AuthController
                 MailerService::sendOtp($pending['email'], $code, 'password_reset');
                 $notice = 'A new code has been sent to ' . $pending['email'] . '.';
             } catch (MailerException $e) {
+                error_log('[admin/reset] OTP resend to ' . $pending['email'] . ' failed: ' . $e->getMessage());
                 $error = 'We could not resend the code right now. Please try again shortly.';
+                if (\App\Core\Env::get('APP_DEBUG', '0') === '1') {
+                    $error .= ' SMTP detail: ' . $e->getMessage();
+                }
             } catch (\Throwable $e) {
+                error_log('[admin/reset] unexpected: ' . $e->getMessage());
                 $error = 'Something went wrong. Please try again shortly.';
             }
         } else {

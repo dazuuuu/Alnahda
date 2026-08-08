@@ -104,6 +104,10 @@ $a = $application;
             <option value="<?= e($status) ?>" <?= $a['status'] === $status ? 'selected' : '' ?>><?= e($statusLabels[$status]) ?></option>
           <?php endforeach; ?>
         </select>
+        <label class="flex items-center gap-2 text-xs text-neutral-600 cursor-pointer">
+          <input type="checkbox" name="notify_email" value="1" checked class="rounded border-neutral-300">
+          Email the applicant about this status change
+        </label>
         <button type="submit" class="w-full bg-[#132c5c] hover:bg-[#1c3d7a] text-amber-300 text-xs font-bold py-2.5 rounded-lg uppercase tracking-widest transition-colors cursor-pointer border border-amber-400/30">Update Status</button>
       </form>
     </div>

@@ -34,6 +34,23 @@ class Url
         return self::$basePath . '/' . ltrim($path, '/');
     }
 
+    /**
+     * Fully-qualified URL for emails / external links.
+     * Prefers APP_URL from .env, then falls back to the current request host.
+     */
+    public static function absolute(string $path = '/'): string
+    {
+        $configured = rtrim((string) Env::get('APP_URL', ''), '/');
+        if ($configured !== '') {
+            return $configured . '/' . ltrim($path, '/');
+        }
+
+        $https = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
+        $scheme = $https ? 'https' : 'http';
+        $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+        return $scheme . '://' . $host . self::to($path);
+    }
+
     /** Absolute app URL for a static file under public/, e.g. Url::asset('assets/css/app.css') */
     public static function asset(string $path): string
     {

@@ -55,9 +55,40 @@ class ApplicationController extends BaseAdminController
 
     public function updateStatus(string $id): void
     {
+        $application = Application::find((int) $id);
+        if (!$application) {
+            redirect('/admin/applications');
+        }
+
         if (csrfVerify(Request::post('csrf_token'))) {
-            Application::updateStatus((int) $id, (string) Request::post('status', ''));
-            flashSuccess('Application status updated.');
+            $newStatus = (string) Request::post('status', '');
+            $notify = (bool) Request::post('notify_email');
+            $previousStatus = (string) ($application['status'] ?? '');
+            Application::updateStatus((int) $id, $newStatus);
+
+            $label = Application::STATUS_LABELS[$newStatus] ?? $newStatus;
+            $emailed = false;
+
+            if ($notify && $newStatus !== '' && $newStatus !== $previousStatus) {
+                try {
+                    MailerService::sendApplicationMessage(
+                        $application['email'],
+                        $application['fullname'],
+                        'Your application status has been updated to: ' . $label . '.',
+                        $label
+                    );
+                    $emailed = true;
+                } catch (MailerException $e) {
+                    error_log('[applications/status] email to ' . $application['email'] . ' failed: ' . $e->getMessage());
+                    flashError('Status was updated, but the email could not be sent — check SMTP settings in .env.');
+                }
+            }
+
+            if (!isset($_SESSION['flash_error'])) {
+                flashSuccess($emailed
+                    ? 'Application status updated and the applicant was emailed.'
+                    : 'Application status updated.');
+            }
         }
         redirect('/admin/applications/' . urlencode($id));
     }
