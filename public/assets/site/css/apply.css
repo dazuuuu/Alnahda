@@ -1,4 +1,4 @@
-/* Registration form layout — see app/Views/site/apply.php.
+/* Registration form layout — see public/views/site/apply.php.
    Compact, two-column-on-desktop layout with a segmented Yes/No toggle
    instead of spaced-out radio circles, replacing the original single
    full-width-row-per-field layout. */

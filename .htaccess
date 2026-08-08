@@ -3,5 +3,9 @@
 # public/index.php handle routing — browser URLs stay unchanged (no /public/).
 <IfModule mod_rewrite.c>
     RewriteEngine On
+
+    # If the request already targets /public/..., don't nest another public/.
+    RewriteRule ^public/(.*)$ public/$1 [L]
+
     RewriteRule ^(.*)$ public/$1 [L]
 </IfModule>

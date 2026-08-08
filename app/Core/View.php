@@ -6,6 +6,8 @@ namespace App\Core;
  * Minimal PHP-include view renderer. Controllers call View::render() once per
  * "chunk" (layout-header, page body, layout-footer) matching the pattern
  * already used throughout the templates — no compiled templating language.
+ *
+ * Templates live under public/views/ (blocked from direct HTTP access).
  */
 class View
 {
@@ -13,7 +15,7 @@ class View
 
     public static function render(string $view, array $data = []): void
     {
-        self::$basePath = self::$basePath ?? dirname(__DIR__) . '/Views/';
+        self::$basePath = self::$basePath ?? dirname(__DIR__, 2) . '/public/views/';
         $file = self::$basePath . str_replace('.', '/', $view) . '.php';
         if (!is_file($file)) {
             throw new \RuntimeException("View not found: {$view} ({$file})");
