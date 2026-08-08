@@ -35,16 +35,6 @@ class MailerService
             );
         }
 
-        $placeholderPassword = in_array(strtolower($password), ['changeme', 'password', 'secret', 'your-gmail-app-password'], true)
-            || preg_match('/^x{16}$/i', preg_replace('/\s+/', '', (string) Env::get('MAIL_PASSWORD', '')) ?? '');
-
-        if ($host === 'smtp.example.com' || str_contains(strtolower($username), 'example.com') || $placeholderPassword) {
-            throw new MailerException(
-                'SMTP still uses placeholder credentials from .env.example. '
-                . 'Replace MAIL_HOST / MAIL_USERNAME / MAIL_PASSWORD with your real SMTP settings.'
-            );
-        }
-
         // Sensible defaults when only encryption is set.
         if ($port <= 0) {
             $port = $encryption === 'ssl' || $encryption === 'smtps' ? 465 : 587;
