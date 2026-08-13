@@ -11,6 +11,15 @@ $statusStyles = [
     'placed' => 'bg-emerald-600 text-white',
     'rejected' => 'bg-rose-100 text-rose-700',
 ];
+
+$exportParams = array_filter([
+    'q' => $filters['search'] ?? '',
+    'status' => $filters['status'] ?? '',
+    'county' => $filters['county'] ?? '',
+], fn($value) => $value !== '' && $value !== null);
+$excelUrl = url('/admin/applications/export') . '?' . http_build_query($exportParams + ['format' => 'excel']);
+$pdfUrl = url('/admin/applications/export') . '?' . http_build_query($exportParams + ['format' => 'pdf']);
+$publicFields = \App\Models\Application::PUBLIC_FIELDS;
 ?>
 
 <p class="text-sm text-neutral-500 mb-6 max-w-2xl">
@@ -20,7 +29,7 @@ $statusStyles = [
 <form method="get" action="<?= url('/admin/applications') ?>" class="bg-white border border-neutral-200 rounded-xl shadow-sm p-4 mb-6 flex flex-wrap items-end gap-3">
   <div class="flex-1 min-w-[200px]">
     <label class="text-[11px] font-bold text-neutral-500 uppercase">Search</label>
-    <input type="text" name="q" value="<?= e($filters['search']) ?>" placeholder="Name, email or phone" class="w-full mt-1 bg-white border border-neutral-300 rounded-lg p-2.5 text-sm focus:outline-none focus:border-[#1c3d7a]" />
+    <input type="text" name="q" value="<?= e($filters['search']) ?>" placeholder="Name or phone" class="w-full mt-1 bg-white border border-neutral-300 rounded-lg p-2.5 text-sm focus:outline-none focus:border-[#1c3d7a]" />
   </div>
   <div>
     <label class="text-[11px] font-bold text-neutral-500 uppercase">Status</label>
@@ -35,6 +44,8 @@ $statusStyles = [
   <?php if ($filters['search'] || $filters['status']): ?>
     <a href="<?= url('/admin/applications') ?>" class="text-xs font-bold text-neutral-500 hover:text-neutral-800">Clear</a>
   <?php endif; ?>
+  <a href="<?= e($excelUrl) ?>" class="bg-[#132c5c] hover:bg-[#1c3d7a] text-amber-300 text-xs font-bold px-5 py-2.5 rounded-lg uppercase tracking-widest transition-colors border border-amber-400/30">Download Excel</a>
+  <a href="<?= e($pdfUrl) ?>" class="bg-[#132c5c] hover:bg-[#1c3d7a] text-amber-300 text-xs font-bold px-5 py-2.5 rounded-lg uppercase tracking-widest transition-colors border border-amber-400/30">Download PDF</a>
 </form>
 
 <div class="bg-white border border-neutral-200 rounded-xl shadow-sm overflow-hidden">
@@ -42,10 +53,9 @@ $statusStyles = [
     <table class="w-full text-left text-xs">
       <thead class="bg-neutral-50 text-neutral-500 uppercase tracking-wider text-[10px]">
         <tr>
-          <th class="px-5 py-3">Applicant</th>
-          <th class="px-5 py-3">Contact</th>
-          <th class="px-5 py-3">Role</th>
-          <th class="px-5 py-3">County</th>
+          <?php foreach ($publicFields as $label): ?>
+            <th class="px-5 py-3"><?= e($label) ?></th>
+          <?php endforeach; ?>
           <th class="px-5 py-3">Status</th>
           <th class="px-5 py-3">Notes</th>
           <th class="px-5 py-3">Submitted</th>
@@ -54,14 +64,13 @@ $statusStyles = [
       </thead>
       <tbody class="divide-y divide-neutral-100">
         <?php if (!$applications): ?>
-          <tr><td colspan="8" class="px-5 py-8 text-center text-neutral-400">No applications match this filter.</td></tr>
+          <tr><td colspan="<?= count($publicFields) + 4 ?>" class="px-5 py-8 text-center text-neutral-400">No applications match this filter.</td></tr>
         <?php endif; ?>
         <?php foreach ($applications as $app): $count = $noteCounts[$app['id']] ?? 0; ?>
           <tr class="hover:bg-neutral-50">
-            <td class="px-5 py-3 font-bold text-neutral-900"><?= e($app['fullname']) ?></td>
-            <td class="px-5 py-3 text-neutral-500"><?= e($app['email']) ?><br><?= e($app['phone']) ?></td>
-            <td class="px-5 py-3"><?= e($app['preferredRole']) ?></td>
-            <td class="px-5 py-3"><?= e($app['county']) ?></td>
+            <?php foreach (array_keys($publicFields) as $field): ?>
+              <td class="px-5 py-3 <?= $field === 'fullname' ? 'font-bold text-neutral-900' : 'text-neutral-500' ?>"><?= e(\App\Models\Application::formatPublicValue($app, $field)) ?></td>
+            <?php endforeach; ?>
             <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase <?= $statusStyles[$app['status']] ?? 'bg-neutral-100 text-neutral-700' ?>"><?= e($statusLabels[$app['status']] ?? $app['status']) ?></span></td>
             <td class="px-5 py-3">
               <?php if ($count > 0): ?>

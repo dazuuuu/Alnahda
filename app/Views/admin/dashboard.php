@@ -51,7 +51,7 @@ $canSeeApplications = \App\Models\Admin::hasPermission(\App\Core\AdminSession::c
       <thead class="bg-neutral-50 text-neutral-500 uppercase tracking-wider text-[10px]">
         <tr>
           <th class="px-5 py-3">Applicant</th>
-          <th class="px-5 py-3">Role</th>
+          <th class="px-5 py-3">Phone</th>
           <th class="px-5 py-3">County</th>
           <th class="px-5 py-3">Status</th>
           <th class="px-5 py-3">Submitted</th>
@@ -65,7 +65,7 @@ $canSeeApplications = \App\Models\Admin::hasPermission(\App\Core\AdminSession::c
         <?php foreach ($recentApplications as $app): ?>
           <tr class="hover:bg-neutral-50">
             <td class="px-5 py-3 font-bold text-neutral-900"><?= e($app['fullname']) ?></td>
-            <td class="px-5 py-3"><?= e($app['preferredRole']) ?></td>
+            <td class="px-5 py-3"><?= e($app['phone']) ?></td>
             <td class="px-5 py-3"><?= e($app['county']) ?></td>
             <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase <?= $statusStyles[$app['status']] ?? 'bg-neutral-100 text-neutral-700' ?>"><?= e($statusLabels[$app['status']] ?? $app['status']) ?></span></td>
             <td class="px-5 py-3 text-neutral-500"><?= e(date('M j, Y', strtotime($app['submitted_at']))) ?></td>

@@ -14,7 +14,7 @@ class Admin
      * junior admins. Add a new entry here whenever a new admin feature is built.
      */
     public const PERMISSIONS = [
-        'applications' => 'Applications — view, update status, and message applicants',
+        'applications' => 'Applications — view, update status, message applicants, and download reports',
         'testimonials' => 'Testimonials — approve or reject applicant reviews',
         'countries' => 'Countries — manage the destinations shown on the website',
     ];

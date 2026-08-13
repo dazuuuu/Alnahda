@@ -24,6 +24,39 @@ class Application
         'rejected' => 'Not Selected',
     ];
 
+    /** Applicant-facing fields collected on /apply — also the columns shown to admins and included in Excel/PDF exports. */
+    public const PUBLIC_FIELDS = [
+        'fullname' => 'Name',
+        'age' => 'Age',
+        'validPassport' => 'Do You Have Valid Passport',
+        'phone' => 'Phone Number',
+        'county' => 'County',
+        'travelledSaudia' => 'Have You Ever Travelled To Saudia Before As Housemaid',
+        'appointmentPreference' => 'When Would You Like To Visit Our Office',
+    ];
+
+    /** Report downloads include the applicant fields plus review status and submitted date. */
+    public const REPORT_FIELDS = [
+        'fullname' => 'Name',
+        'age' => 'Age',
+        'validPassport' => 'Do You Have Valid Passport',
+        'phone' => 'Phone Number',
+        'county' => 'County',
+        'travelledSaudia' => 'Have You Ever Travelled To Saudia Before As Housemaid',
+        'appointmentPreference' => 'When Would You Like To Visit Our Office',
+        'status' => 'Status',
+        'submitted_at' => 'Submitted',
+    ];
+
+    public const COUNTIES = [
+        'Baringo', 'Bomet', 'Bungoma', 'Busia', 'Elgeyo-Marakwet', 'Embu', 'Garissa', 'Homa Bay',
+        'Isiolo', 'Kajiado', 'Kakamega', 'Kericho', 'Kiambu', 'Kilifi', 'Kirinyaga', 'Kisii',
+        'Kisumu', 'Kitui', 'Kwale', 'Laikipia', 'Lamu', 'Machakos', 'Makueni', 'Mandera',
+        'Marsabit', 'Meru', 'Migori', 'Mombasa', "Murang'a", 'Nairobi City', 'Nakuru', 'Nandi',
+        'Narok', 'Nyamira', 'Nyandarua', 'Nyeri', 'Samburu', 'Siaya', 'Taita-Taveta', 'Tana River',
+        'Tharaka-Nithi', 'Trans Nzoia', 'Turkana', 'Uasin Gishu', 'Vihiga', 'Wajir', 'West Pokot',
+    ];
+
     private const FIELDS = [
         'fullname', 'email', 'weight', 'phone', 'phone2', 'county', 'age',
         'preferredRole', 'gender', 'languages', 'travelledSaudia', 'returnYear',
@@ -90,7 +123,7 @@ class Application
             $params['county'] = $filters['county'];
         }
         if (!empty($filters['search'])) {
-            $sql .= ' AND (fullname LIKE :search OR email LIKE :search OR phone LIKE :search OR phone2 LIKE :search)';
+            $sql .= ' AND (fullname LIKE :search OR phone LIKE :search OR phone2 LIKE :search OR email LIKE :search)';
             $params['search'] = '%' . $filters['search'] . '%';
         }
 
@@ -129,5 +162,41 @@ class Application
         return Database::connection()
             ->query("SELECT * FROM applications ORDER BY submitted_at DESC LIMIT {$limit}")
             ->fetchAll();
+    }
+
+    /** Formats one of the PUBLIC_FIELDS values for display or export. */
+    public static function formatPublicValue(array $application, string $field): string
+    {
+        $value = $application[$field] ?? null;
+        if ($field === 'validPassport' || $field === 'travelledSaudia') {
+            return yesNo($value);
+        }
+        if ($field === 'appointmentPreference') {
+            return $value ? date('M j, Y', strtotime((string) $value)) : '—';
+        }
+        if ($field === 'age') {
+            return $value === null || $value === '' ? '—' : (string) (int) $value;
+        }
+        if ($field === 'status') {
+            return self::STATUS_LABELS[$value] ?? ((string) ($value ?: '—'));
+        }
+        if ($field === 'submitted_at') {
+            return $value ? date('M j, Y', strtotime((string) $value)) : '—';
+        }
+        if ($value === null || $value === '') {
+            return '—';
+        }
+        return (string) $value;
+    }
+
+    /** Counties available for report filters — the form list plus any extra values already stored. */
+    public static function counties(): array
+    {
+        $rows = Database::connection()
+            ->query("SELECT DISTINCT county FROM applications WHERE county IS NOT NULL AND county != '' ORDER BY county ASC")
+            ->fetchAll(\PDO::FETCH_COLUMN);
+        $merged = array_unique(array_merge(self::COUNTIES, array_map('strval', $rows)));
+        sort($merged, SORT_NATURAL | SORT_FLAG_CASE);
+        return array_values($merged);
     }
 }

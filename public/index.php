@@ -15,6 +15,7 @@ use App\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Controllers\Admin\ApplicationController as AdminApplicationController;
 use App\Controllers\Admin\AdminUserController;
 use App\Controllers\Admin\CountryController as AdminCountryController;
+use App\Controllers\Admin\ReportController as AdminReportController;
 use App\Controllers\Admin\TestimonialController as AdminTestimonialController;
 use App\Controllers\Portal\AuthController as PortalAuthController;
 use App\Controllers\Portal\DashboardController as PortalDashboardController;
@@ -44,9 +45,15 @@ $router->get('/admin', [AdminDashboardController::class, 'index']);
 
 // --- Admin: applications ---
 $router->get('/admin/applications', [AdminApplicationController::class, 'index']);
+$router->get('/admin/applications/export', [AdminApplicationController::class, 'export']);
 $router->get('/admin/applications/{id}', [AdminApplicationController::class, 'show']);
+$router->get('/admin/applications/{id}/export', [AdminApplicationController::class, 'exportOne']);
 $router->post('/admin/applications/{id}/status', [AdminApplicationController::class, 'updateStatus']);
 $router->post('/admin/applications/{id}/notes', [AdminApplicationController::class, 'addNote']);
+
+// --- Admin: reports ---
+$router->get('/admin/reports', [AdminReportController::class, 'index']);
+$router->get('/admin/reports/export', [AdminReportController::class, 'export']);
 
 // --- Admin: countries ---
 $router->get('/admin/countries', [AdminCountryController::class, 'index']);
