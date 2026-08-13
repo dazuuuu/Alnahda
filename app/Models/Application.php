@@ -24,6 +24,17 @@ class Application
         'rejected' => 'Not Selected',
     ];
 
+    /** Applicant-facing fields collected on /apply — also the columns shown to admins and included in Excel/PDF exports. */
+    public const PUBLIC_FIELDS = [
+        'fullname' => 'Name',
+        'age' => 'Age',
+        'validPassport' => 'Do You Have Valid Passport',
+        'phone' => 'Phone Number',
+        'county' => 'County',
+        'travelledSaudia' => 'Have You Ever Travelled To Saudia Before As Housemaid',
+        'appointmentPreference' => 'When Would You Like To Visit Our Office',
+    ];
+
     private const FIELDS = [
         'fullname', 'email', 'weight', 'phone', 'phone2', 'county', 'age',
         'preferredRole', 'gender', 'languages', 'travelledSaudia', 'returnYear',
@@ -90,7 +101,7 @@ class Application
             $params['county'] = $filters['county'];
         }
         if (!empty($filters['search'])) {
-            $sql .= ' AND (fullname LIKE :search OR email LIKE :search OR phone LIKE :search OR phone2 LIKE :search)';
+            $sql .= ' AND (fullname LIKE :search OR phone LIKE :search OR phone2 LIKE :search OR email LIKE :search)';
             $params['search'] = '%' . $filters['search'] . '%';
         }
 
@@ -129,5 +140,24 @@ class Application
         return Database::connection()
             ->query("SELECT * FROM applications ORDER BY submitted_at DESC LIMIT {$limit}")
             ->fetchAll();
+    }
+
+    /** Formats one of the PUBLIC_FIELDS values for display or export. */
+    public static function formatPublicValue(array $application, string $field): string
+    {
+        $value = $application[$field] ?? null;
+        if ($field === 'validPassport' || $field === 'travelledSaudia') {
+            return yesNo($value);
+        }
+        if ($field === 'appointmentPreference') {
+            return $value ? date('M j, Y', strtotime((string) $value)) : '—';
+        }
+        if ($field === 'age') {
+            return $value === null || $value === '' ? '—' : (string) (int) $value;
+        }
+        if ($value === null || $value === '') {
+            return '—';
+        }
+        return (string) $value;
     }
 }

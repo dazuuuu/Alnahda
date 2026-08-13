@@ -2,6 +2,9 @@
 /** Requires $application, $notes, $statuses, $statusLabels in scope. */
 require __DIR__ . '/../layout-header.php';
 $a = $application;
+$hasEmail = filter_var(trim((string) ($a['email'] ?? '')), FILTER_VALIDATE_EMAIL);
+$excelUrl = url('/admin/applications/' . $a['id'] . '/export?format=excel');
+$pdfUrl = url('/admin/applications/' . $a['id'] . '/export?format=pdf');
 ?>
 
 <p class="mb-6"><a href="<?= url('/admin/applications') ?>" class="text-xs font-bold text-[#1c3d7a] hover:underline">&larr; Back to applications</a></p>
@@ -10,47 +13,27 @@ $a = $application;
   <div class="lg:col-span-2 space-y-6">
 
     <div class="bg-white border border-neutral-200 rounded-xl shadow-sm p-6">
-      <h2 class="font-serif-heading text-lg font-bold text-[#0f2852] mb-4">Personal Details</h2>
-      <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
-        <div><dt class="text-[11px] font-bold text-neutral-500 uppercase">Full Name</dt><dd class="text-neutral-800"><?= e($a['fullname']) ?></dd></div>
-        <div><dt class="text-[11px] font-bold text-neutral-500 uppercase">Email</dt><dd class="text-neutral-800"><a href="mailto:<?= e($a['email']) ?>" class="hover:text-[#1c3d7a]"><?= e($a['email']) ?></a></dd></div>
-        <div><dt class="text-[11px] font-bold text-neutral-500 uppercase">Phone 1</dt><dd class="text-neutral-800"><a href="tel:<?= e($a['phone']) ?>" class="hover:text-[#1c3d7a]"><?= e($a['phone']) ?></a></dd></div>
-        <div><dt class="text-[11px] font-bold text-neutral-500 uppercase">Phone 2</dt><dd class="text-neutral-800"><?= $a['phone2'] ? e($a['phone2']) : '—' ?></dd></div>
-        <div><dt class="text-[11px] font-bold text-neutral-500 uppercase">County</dt><dd class="text-neutral-800"><?= e($a['county']) ?></dd></div>
-        <div><dt class="text-[11px] font-bold text-neutral-500 uppercase">Age</dt><dd class="text-neutral-800"><?= (int) $a['age'] ?></dd></div>
-        <div><dt class="text-[11px] font-bold text-neutral-500 uppercase">Gender</dt><dd class="text-neutral-800"><?= e($a['gender']) ?></dd></div>
-        <div><dt class="text-[11px] font-bold text-neutral-500 uppercase">Weight (kg)</dt><dd class="text-neutral-800"><?= e($a['weight']) ?></dd></div>
-        <div><dt class="text-[11px] font-bold text-neutral-500 uppercase">Preferred Role</dt><dd class="text-neutral-800"><?= e($a['preferredRole']) ?></dd></div>
-        <div><dt class="text-[11px] font-bold text-neutral-500 uppercase">Languages</dt><dd class="text-neutral-800"><?= e($a['languages']) ?></dd></div>
-        <div><dt class="text-[11px] font-bold text-neutral-500 uppercase">Preferred Appointment</dt><dd class="text-neutral-800"><?= $a['appointmentPreference'] ? e(date('M j, Y', strtotime($a['appointmentPreference']))) : '—' ?></dd></div>
-        <div><dt class="text-[11px] font-bold text-neutral-500 uppercase">Consent to Contact</dt><dd class="text-neutral-800"><?= $a['consent'] ? 'Yes' : 'No' ?></dd></div>
-      </dl>
-    </div>
-
-    <div class="bg-white border border-neutral-200 rounded-xl shadow-sm p-6">
-      <h2 class="font-serif-heading text-lg font-bold text-[#0f2852] mb-4">Travel &amp; Work History</h2>
-      <dl class="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-3 text-sm">
-        <div><dt class="text-[11px] font-bold text-neutral-500 uppercase">Worked in Saudi Arabia</dt><dd class="text-neutral-800"><?= yesNo($a['travelledSaudia']) ?></dd></div>
-        <div><dt class="text-[11px] font-bold text-neutral-500 uppercase">Last Returned</dt><dd class="text-neutral-800"><?= $a['returnYear'] ? e($a['returnYear']) : '—' ?></dd></div>
-        <div><dt class="text-[11px] font-bold text-neutral-500 uppercase">Years Worked</dt><dd class="text-neutral-800"><?= $a['durationYears'] ? e($a['durationYears']) : '—' ?></dd></div>
-        <div><dt class="text-[11px] font-bold text-neutral-500 uppercase">Finished Contract</dt><dd class="text-neutral-800"><?= yesNo($a['finishedContract']) ?></dd></div>
-        <div><dt class="text-[11px] font-bold text-neutral-500 uppercase">Issue With Sponsor</dt><dd class="text-neutral-800"><?= yesNo($a['issueWithSponsor']) ?></dd></div>
-        <div><dt class="text-[11px] font-bold text-neutral-500 uppercase">Deported</dt><dd class="text-neutral-800"><?= yesNo($a['deported']) ?></dd></div>
-        <div><dt class="text-[11px] font-bold text-neutral-500 uppercase">Final Exit Visa</dt><dd class="text-neutral-800"><?= yesNo($a['exitVisa']) ?></dd></div>
-        <div><dt class="text-[11px] font-bold text-neutral-500 uppercase">Re-entry Visa</dt><dd class="text-neutral-800"><?= yesNo($a['reentryVisa']) ?></dd></div>
-        <div><dt class="text-[11px] font-bold text-neutral-500 uppercase">Traveled to Lebanon</dt><dd class="text-neutral-800"><?= yesNo($a['lebanon']) ?></dd></div>
-        <div><dt class="text-[11px] font-bold text-neutral-500 uppercase">Traveled to Jordan</dt><dd class="text-neutral-800"><?= yesNo($a['jordan']) ?></dd></div>
-        <div><dt class="text-[11px] font-bold text-neutral-500 uppercase">Medically Fit</dt><dd class="text-neutral-800"><?= yesNo($a['medicalFit']) ?></dd></div>
-        <div><dt class="text-[11px] font-bold text-neutral-500 uppercase">Willing to (Re)Travel</dt><dd class="text-neutral-800"><?= yesNo($a['willingToReturn']) ?></dd></div>
-        <div><dt class="text-[11px] font-bold text-neutral-500 uppercase">Valid Passport</dt><dd class="text-neutral-800"><?= yesNo($a['validPassport']) ?></dd></div>
-        <div><dt class="text-[11px] font-bold text-neutral-500 uppercase">Certificate of Good Conduct</dt><dd class="text-neutral-800"><?= yesNo($a['validConduct']) ?></dd></div>
-      </dl>
-      <?php if ($a['contractExplain']): ?>
-        <div class="mt-4 bg-neutral-50 border border-neutral-200 rounded-lg p-3">
-          <p class="text-[11px] font-bold text-neutral-500 uppercase mb-1">Sponsor Issue — Explanation</p>
-          <p class="text-sm text-neutral-800 whitespace-pre-line"><?= e($a['contractExplain']) ?></p>
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <h2 class="font-serif-heading text-lg font-bold text-[#0f2852]">Application Details</h2>
+        <div class="flex flex-wrap gap-2">
+          <a href="<?= e($excelUrl) ?>" class="inline-block bg-[#132c5c] hover:bg-[#1c3d7a] text-amber-300 text-[10px] font-bold px-3 py-2 rounded-lg uppercase tracking-wider whitespace-nowrap border border-amber-400/30">Download Excel</a>
+          <a href="<?= e($pdfUrl) ?>" class="inline-block bg-[#132c5c] hover:bg-[#1c3d7a] text-amber-300 text-[10px] font-bold px-3 py-2 rounded-lg uppercase tracking-wider whitespace-nowrap border border-amber-400/30">Download PDF</a>
         </div>
-      <?php endif; ?>
+      </div>
+      <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
+        <?php foreach (\App\Models\Application::PUBLIC_FIELDS as $field => $label): ?>
+          <div>
+            <dt class="text-[11px] font-bold text-neutral-500 uppercase"><?= e($label) ?></dt>
+            <dd class="text-neutral-800">
+              <?php if ($field === 'phone'): ?>
+                <a href="tel:<?= e($a['phone']) ?>" class="hover:text-[#1c3d7a]"><?= e(\App\Models\Application::formatPublicValue($a, $field)) ?></a>
+              <?php else: ?>
+                <?= e(\App\Models\Application::formatPublicValue($a, $field)) ?>
+              <?php endif; ?>
+            </dd>
+          </div>
+        <?php endforeach; ?>
+      </dl>
     </div>
 
     <div class="bg-white border border-neutral-200 rounded-xl shadow-sm overflow-hidden">
@@ -84,10 +67,14 @@ $a = $application;
         <?= csrfField() ?>
         <textarea name="message" rows="4" required placeholder="Write an update for this applicant…" class="w-full bg-white border border-neutral-300 rounded-lg p-2.5 text-sm focus:outline-none focus:border-[#1c3d7a]"></textarea>
         <div class="flex items-center justify-between">
-          <label class="flex items-center gap-2 text-xs font-semibold text-neutral-600">
-            <input type="checkbox" name="notify_email" value="1" checked class="rounded border-neutral-300">
-            Also email this to <?= e($a['email']) ?>
-          </label>
+          <?php if ($hasEmail): ?>
+            <label class="flex items-center gap-2 text-xs font-semibold text-neutral-600">
+              <input type="checkbox" name="notify_email" value="1" checked class="rounded border-neutral-300">
+              Also email this to <?= e($a['email']) ?>
+            </label>
+          <?php else: ?>
+            <span class="text-xs text-neutral-400">This applicant did not provide an email address.</span>
+          <?php endif; ?>
           <button type="submit" class="bg-[#132c5c] hover:bg-[#1c3d7a] text-amber-300 text-xs font-bold px-5 py-2.5 rounded-lg uppercase tracking-widest transition-colors cursor-pointer border border-amber-400/30">Send Note</button>
         </div>
       </form>
@@ -113,7 +100,9 @@ $a = $application;
       <div class="space-y-2">
         <a href="tel:<?= e($a['phone']) ?>" class="flex items-center justify-center gap-2 w-full bg-white border border-neutral-300 hover:border-[#1c3d7a] text-neutral-700 text-xs font-bold py-2.5 rounded-lg uppercase tracking-wider">Call <?= e($a['phone']) ?></a>
         <a href="https://wa.me/<?= e(preg_replace('/[^0-9]/', '', (strpos($a['phone'], '0') === 0 ? '254' . substr($a['phone'], 1) : $a['phone']))) ?>" target="_blank" rel="noopener" class="flex items-center justify-center gap-2 w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 rounded-lg uppercase tracking-wider">WhatsApp</a>
-        <a href="mailto:<?= e($a['email']) ?>" class="flex items-center justify-center gap-2 w-full bg-white border border-neutral-300 hover:border-[#1c3d7a] text-neutral-700 text-xs font-bold py-2.5 rounded-lg uppercase tracking-wider">Email <?= e($a['email']) ?></a>
+        <?php if ($hasEmail): ?>
+          <a href="mailto:<?= e($a['email']) ?>" class="flex items-center justify-center gap-2 w-full bg-white border border-neutral-300 hover:border-[#1c3d7a] text-neutral-700 text-xs font-bold py-2.5 rounded-lg uppercase tracking-wider">Email <?= e($a['email']) ?></a>
+        <?php endif; ?>
       </div>
     </div>
 

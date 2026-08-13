@@ -6,6 +6,7 @@ use App\Core\Request;
 use App\Core\View;
 use App\Models\Application;
 use App\Models\ApplicationNote;
+use App\Services\ApplicationExportService;
 use App\Services\MailerException;
 use App\Services\MailerService;
 
@@ -19,11 +20,7 @@ class ApplicationController extends BaseAdminController
 
     public function index(): void
     {
-        $filters = [
-            'status' => (string) Request::query('status', ''),
-            'county' => (string) Request::query('county', ''),
-            'search' => trim((string) Request::query('q', '')),
-        ];
+        $filters = $this->filters();
 
         View::render('admin.applications.index', [
             'pageTitle' => 'Applications',
@@ -34,6 +31,12 @@ class ApplicationController extends BaseAdminController
             'statusLabels' => Application::STATUS_LABELS,
             'filters' => $filters,
         ]);
+    }
+
+    public function export(): void
+    {
+        $applications = Application::all($this->filters());
+        $this->sendExport($applications, 'alnahda-applications-' . date('Y-m-d'));
     }
 
     public function show(string $id): void
@@ -51,6 +54,17 @@ class ApplicationController extends BaseAdminController
             'statuses' => Application::STATUSES,
             'statusLabels' => Application::STATUS_LABELS,
         ]);
+    }
+
+    public function exportOne(string $id): void
+    {
+        $application = Application::find((int) $id);
+        if (!$application) {
+            redirect('/admin/applications');
+        }
+
+        $slug = preg_replace('/[^a-z0-9]+/i', '-', (string) $application['fullname']) ?: 'application';
+        $this->sendExport([$application], 'alnahda-application-' . (int) $application['id'] . '-' . strtolower(trim($slug, '-')));
     }
 
     public function updateStatus(string $id): void
@@ -73,20 +87,21 @@ class ApplicationController extends BaseAdminController
         if (csrfVerify(Request::post('csrf_token'))) {
             $message = trim((string) Request::post('message', ''));
             $sendEmail = (bool) Request::post('notify_email');
+            $email = trim((string) ($application['email'] ?? ''));
 
             if ($message !== '') {
                 $notified = false;
-                if ($sendEmail) {
+                if ($sendEmail && filter_var($email, FILTER_VALIDATE_EMAIL)) {
                     try {
                         MailerService::sendApplicationMessage(
-                            $application['email'],
+                            $email,
                             $application['fullname'],
                             $message,
                             Application::STATUS_LABELS[$application['status']] ?? $application['status']
                         );
                         $notified = true;
                     } catch (MailerException $e) {
-                        error_log('[applications/notes] email to ' . $application['email'] . ' failed: ' . $e->getMessage());
+                        error_log('[applications/notes] email to ' . $email . ' failed: ' . $e->getMessage());
                         flashError('The note was saved, but the email could not be sent — check the SMTP settings in .env (MAIL_HOST/MAIL_USERNAME/MAIL_PASSWORD).');
                     }
                 }
@@ -100,11 +115,31 @@ class ApplicationController extends BaseAdminController
                 );
 
                 if (!isset($_SESSION['flash_error'])) {
-                    flashSuccess($sendEmail ? 'Note saved and emailed to the applicant.' : 'Note added to the applicant dashboard.');
+                    flashSuccess($notified ? 'Note saved and emailed to the applicant.' : 'Note added to the applicant dashboard.');
                 }
             }
         }
 
         redirect('/admin/applications/' . urlencode($id));
+    }
+
+    /** @return array{status:string,county:string,search:string} */
+    private function filters(): array
+    {
+        return [
+            'status' => (string) Request::query('status', ''),
+            'county' => (string) Request::query('county', ''),
+            'search' => trim((string) Request::query('q', '')),
+        ];
+    }
+
+    /** @param array<int,array<string,mixed>> $applications */
+    private function sendExport(array $applications, string $filename): void
+    {
+        $format = strtolower((string) Request::query('format', 'excel'));
+        if ($format === 'pdf') {
+            ApplicationExportService::downloadPdf($applications, $filename);
+        }
+        ApplicationExportService::downloadExcel($applications, $filename);
     }
 }

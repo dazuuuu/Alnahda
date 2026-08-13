@@ -44,7 +44,9 @@ $router->get('/admin', [AdminDashboardController::class, 'index']);
 
 // --- Admin: applications ---
 $router->get('/admin/applications', [AdminApplicationController::class, 'index']);
+$router->get('/admin/applications/export', [AdminApplicationController::class, 'export']);
 $router->get('/admin/applications/{id}', [AdminApplicationController::class, 'show']);
+$router->get('/admin/applications/{id}/export', [AdminApplicationController::class, 'exportOne']);
 $router->post('/admin/applications/{id}/status', [AdminApplicationController::class, 'updateStatus']);
 $router->post('/admin/applications/{id}/notes', [AdminApplicationController::class, 'addNote']);
 

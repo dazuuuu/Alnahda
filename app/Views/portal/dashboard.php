@@ -35,7 +35,7 @@ $statusLabels = \App\Models\Application::STATUS_LABELS;
     <a href="<?= url('/portal/applications/' . $app['id']) ?>" class="block bg-white border border-neutral-200 rounded-xl shadow-sm overflow-hidden hover:border-[#1c3d7a] transition-colors">
       <div class="px-5 py-4 flex flex-wrap items-center justify-between gap-2">
         <div>
-          <p class="font-mono font-bold text-sm text-neutral-900">Application #<?= (int) $app['id'] ?> &middot; <?= e($app['preferredRole']) ?></p>
+          <p class="font-mono font-bold text-sm text-neutral-900">Application #<?= (int) $app['id'] ?></p>
           <p class="text-[11px] text-neutral-400"><?= e(date('M j, Y g:ia', strtotime($app['submitted_at']))) ?></p>
         </div>
         <div class="flex items-center gap-2">
