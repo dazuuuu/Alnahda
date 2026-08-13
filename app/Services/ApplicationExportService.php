@@ -12,19 +12,21 @@ class ApplicationExportService
 {
     /**
      * @param array<int,array<string,mixed>> $applications
+     * @param array<string,string>|null $labels
      */
-    public static function downloadExcel(array $applications, string $filename): void
+    public static function downloadExcel(array $applications, string $filename, ?array $labels = null, string $sheetTitle = 'Applications'): void
     {
-        $body = self::excelXml($applications);
+        $body = self::excelXml($applications, $labels ?? Application::PUBLIC_FIELDS, $sheetTitle);
         self::sendDownload($filename . '.xls', 'application/vnd.ms-excel; charset=UTF-8', $body);
     }
 
     /**
      * @param array<int,array<string,mixed>> $applications
+     * @param array<string,string>|null $labels
      */
-    public static function downloadPdf(array $applications, string $filename): void
+    public static function downloadPdf(array $applications, string $filename, ?array $labels = null, string $heading = 'Al NAHDA Agency - Applications'): void
     {
-        $body = self::pdfBinary($applications);
+        $body = self::pdfBinary($applications, $labels ?? Application::PUBLIC_FIELDS, $heading);
         self::sendDownload($filename . '.pdf', 'application/pdf', $body);
     }
 
@@ -41,17 +43,18 @@ class ApplicationExportService
 
     /**
      * @param array<int,array<string,mixed>> $applications
+     * @param array<string,string> $labels
      */
-    private static function excelXml(array $applications): string
+    private static function excelXml(array $applications, array $labels, string $sheetTitle): string
     {
-        $labels = Application::PUBLIC_FIELDS;
+        $sheetTitle = self::excelSheetName($sheetTitle);
         $xml = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
         $xml .= '<?mso-application progid="Excel.Sheet"?>' . "\n";
         $xml .= '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">' . "\n";
         $xml .= '<Styles>';
         $xml .= '<Style ss:ID="header"><Font ss:Bold="1" ss:Color="#FFFFFF"/><Interior ss:Color="#132C5C" ss:Pattern="Solid"/></Style>';
         $xml .= '</Styles>' . "\n";
-        $xml .= '<Worksheet ss:Name="Applications"><Table>' . "\n";
+        $xml .= '<Worksheet ss:Name="' . self::xml($sheetTitle) . '"><Table>' . "\n";
 
         $xml .= '<Row>';
         foreach ($labels as $label) {
@@ -73,40 +76,45 @@ class ApplicationExportService
 
     /**
      * @param array<int,array<string,mixed>> $applications
+     * @param array<string,string> $labels
      */
-    private static function pdfBinary(array $applications): string
+    private static function pdfBinary(array $applications, array $labels, string $heading): string
     {
-        $labels = Application::PUBLIC_FIELDS;
         $pageW = 842; // A4 landscape
         $pageH = 595;
         $margin = 36;
-        $fontSize = 9;
+        $fontSize = 8;
         $headerSize = 11;
-        $lineH = 16;
+        $lineH = 14;
         $usableW = $pageW - ($margin * 2);
 
         $colKeys = array_keys($labels);
         $colWeights = [
             'fullname' => 1.4,
             'age' => 0.5,
-            'validPassport' => 1.1,
-            'phone' => 1.2,
-            'county' => 1.1,
-            'travelledSaudia' => 2.0,
-            'appointmentPreference' => 1.3,
+            'validPassport' => 1.0,
+            'phone' => 1.1,
+            'county' => 1.0,
+            'travelledSaudia' => 1.6,
+            'appointmentPreference' => 1.1,
+            'status' => 1.0,
+            'submitted_at' => 0.9,
         ];
-        $weightSum = array_sum($colWeights);
+        $weightSum = 0.0;
+        foreach ($colKeys as $key) {
+            $weightSum += $colWeights[$key] ?? 1.0;
+        }
         $colWidths = [];
         foreach ($colKeys as $key) {
-            $colWidths[$key] = $usableW * ($colWeights[$key] / $weightSum);
+            $colWidths[$key] = $usableW * (($colWeights[$key] ?? 1.0) / $weightSum);
         }
 
         $pages = [];
         $content = '';
         $y = $pageH - $margin;
 
-        $drawHeader = function () use (&$content, &$y, $labels, $colKeys, $colWidths, $margin, $pageH, $headerSize, $lineH) {
-            $content .= "BT /F2 {$headerSize} Tf " . self::pdfCoord($margin) . ' ' . self::pdfCoord($y) . " Td (Al NAHDA Agency — Applications) Tj ET\n";
+        $drawHeader = function () use (&$content, &$y, $labels, $colKeys, $colWidths, $margin, $pageH, $headerSize, $lineH, $heading) {
+            $content .= self::pdfText($margin, $y, $heading, $headerSize, true);
             $y -= ($lineH + 6);
             $x = $margin;
             foreach ($colKeys as $key) {
@@ -156,6 +164,16 @@ class ApplicationExportService
     private static function xml(string $value): string
     {
         return htmlspecialchars($value, ENT_XML1 | ENT_QUOTES, 'UTF-8');
+    }
+
+    private static function excelSheetName(string $name): string
+    {
+        $name = preg_replace('/[\\\\\/\?\*\[\]:]/', ' ', $name) ?? $name;
+        $name = trim($name);
+        if ($name === '') {
+            return 'Applications';
+        }
+        return function_exists('mb_substr') ? mb_substr($name, 0, 31) : substr($name, 0, 31);
     }
 
     private static function clip(string $value, int $maxChars): string

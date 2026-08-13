@@ -2,7 +2,7 @@
 /**
  * Shared admin shell (sidebar + topbar). Include after setting:
  *   $pageTitle  — shown in <title> and the topbar
- *   $activeNav  — one of: dashboard, applications, countries, testimonials, admin-users
+ *   $activeNav  — one of: dashboard, applications, reports, countries, testimonials, admin-users
  * Requires App\Core\AdminSession::require() to have already run.
  */
 
@@ -16,6 +16,7 @@ $navItems = [
 ];
 if (Admin::hasPermission($admin, 'applications')) {
     $navItems[] = ['id' => 'applications', 'href' => url('/admin/applications'), 'label' => 'Applications'];
+    $navItems[] = ['id' => 'reports', 'href' => url('/admin/reports'), 'label' => 'Reports'];
 }
 if (Admin::hasPermission($admin, 'testimonials')) {
     $navItems[] = ['id' => 'testimonials', 'href' => url('/admin/testimonials'), 'label' => 'Testimonials'];
